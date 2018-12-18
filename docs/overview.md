@@ -62,12 +62,57 @@ message-queue.png
 
 AMQP một giao thức internet mở và được chuẩn hóa để truyền message tin cậy giữa các ứng dụng hoặc tổ chức.
 
-## AMQ elements
+## Các thành phần trong kiến trúc AMQ
 Kiến trúc AMQ (Advanced Message Queuing) gồm 4 thành phần:
-- Message Flow: It explains the message life cycle
-- Exchanges: It accepts messages from publisher, and then routes  to the Message Queues
-- Message Queues: It stores messages in memory or disk and delivers
-messages to the consumers
-- Bindings: It specifies the relationship between an exchange and a message queue that tells how to route messages to the right Message Queues
+- Message Flow: Dòng đời của 1 message
+- Exchanges: Nhận message từ nơi gửi (publisher), định tuyến tới các Message Queue
+- Message Queue: Nơi lưu các message (tại ram hoặc disk), chuyển giao message tới consumers
+- Bindings: Định nghĩ quan hệ giữa exchange và message queue, mô tả cách định tuyến message tới chính xác message queue
 
-(Note 69)
+### Message flow
+- Message flow bắt đầu khi Producer tạo message, giử tới exchange. Sau đó exchange định tuyến tới Message Queue bằng Bindings. Cuối cùng Consumer nhận được message.
+
+- Message: Tạo ra bởi Publisher, sử dụng giao thức AMQP Client, Message chứa thông tin  (Content, Properties, Routing Information)
+- Exchange: Nhận Message được gửi từ Producer, định tuyến tới Queue mong muốn (định tuyến dựa trên thông tin Queue), Message có thể được gửi tới 1 hoặc nhiều queue dựa theo binding
+- Message Queue: Nhận Message, đặt vào hàng chờ. Tới thời điểm, Message Queue sẽ gửi message tới consumer. Nếu quá trình truyền có vấn đề, MQ sẽ lưu thông tin vào disk or ram, lưu trữ phục vụ mục đích tái gửi.
+- Consumer: Nơi message được gửi tới.
+
+message-flow
+
+### Exchanges
+- Chịu trách nhiệm định tuyến message tới đích mong muốn, 0 hoặc 1 hoặc nhiều queu
+
+Các thuộc tính quan trọng trong exchange:
+- Tên định danh: Exchanges có định danh độc nhất (có thể được random)
+- Tính bền vững (Durable): Nếu thiết lập, EX lưu giữ hàng đợi tin nhắn (tạm thời hoặc luôn luôn)
+- Auto-delete: Nếu thiết lập, EX tự xóa khi hoàn thành tác vụ
+
+### Message queues
+- Nơi lưu giữ Message (lưu theo cơ chế FIFO). Khác với kiểu dữ liệu Queue, Message Queue có thể được sử dụng với nhiều consumer và publisher. 
+
+Các thuộc tính quan trọng:
+- Tên định danh: Message queues có định danh độc nhất (có thể được random)
+- Tính bền vững (Durable): lưu giữ hàng đợi tin nhắn (tạm thời hoặc luôn luôn)
+- Tính độc nhât (Exclusive): Nếu thiết lập, MQ sẽ tự động xóa khi ngắt kết nối
+- Auto-delete: Nếu thiết lập, MQ tự xóa khi consumer hủy liên kết
+
+### Bindings
+- Thông số, chỉ số hỗ trợ EX định tuyến message giữ các queue.
+- Các thống số, chỉ số được gọi là `routing key`
+- AMQ hỗ trợ nhiều loại routing key phục vụ các bài toán khác nhau
+
+## AMQP
+### AMQP messages
+
+Bao gồm các thuộc tính
+- Content (binary data)
+- Header
+- Properties
+
+amqp-message
+
+### Virtual hosts
+- Sử dụng với mục đính cô lập môi trường (Tác biệt người dùng, nhóm người dùng, exchange, message queue)
+
+
+### Các kiểu exchange
